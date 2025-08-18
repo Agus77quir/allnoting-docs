@@ -4,12 +4,14 @@ import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import DocumentEditor from '@/components/DocumentEditor';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Document {
   id: string;
   title: string;
   content: string;
-  isPublic: boolean;
+  is_public: boolean;
+  created_by: string;
 }
 
 type ViewType = 'dashboard' | 'editor' | 'viewer';
@@ -24,56 +26,122 @@ const Index = () => {
     email: 'user@example.com'
   };
 
+  const currentUsername = mockUser.name.toLowerCase().replace(' ', '_');
+
   const handleCreateDocument = () => {
     setCurrentDocument(null);
     setCurrentView('editor');
   };
 
-  const handleViewDocument = (id: string) => {
-    // In a real app, fetch document by ID
-    console.log('Viewing document:', id);
-    toast({
-      title: "Document opened",
-      description: "Document loaded in view mode",
-    });
+  const handleViewDocument = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching document:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar el documento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create a simple viewer (for now just show a toast)
+      toast({
+        title: "Documento abierto",
+        description: `Visualizando: ${data.title}`,
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditDocument = (id: string) => {
-    // In a real app, fetch document by ID
-    const mockDocument: Document = {
-      id,
-      title: 'Sample Document',
-      content: 'This is sample content for editing...',
-      isPublic: true
-    };
-    setCurrentDocument(mockDocument);
-    setCurrentView('editor');
+  const handleEditDocument = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching document:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar el documento para editar",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCurrentDocument(data);
+      setCurrentView('editor');
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDownloadDocument = (id: string) => {
-    // Mock download functionality
-    const element = document.createElement('a');
-    const file = new Blob(['# Sample Document\n\nThis is the document content...'], 
-      { type: 'text/markdown' });
-    element.href = URL.createObjectURL(file);
-    element.download = `document-${id}.md`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    toast({
-      title: "Download started",
-      description: "Your document is being downloaded",
-    });
+  const handleDownloadDocument = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching document:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo descargar el documento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create and download the file
+      const content = `# ${data.title}\n\n${data.content}`;
+      const element = document.createElement('a');
+      const file = new Blob([content], { type: 'text/markdown' });
+      element.href = URL.createObjectURL(file);
+      element.download = `${data.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      toast({
+        title: "Descarga iniciada",
+        description: "Tu documento se está descargando",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveDocument = (doc: Partial<Document>) => {
-    console.log('Saving document:', doc);
+    console.log('Document saved:', doc);
     setCurrentView('dashboard');
-    toast({
-      title: "Document saved",
-      description: "Your changes have been saved successfully",
-    });
+    // The DocumentEditor already shows the success toast
   };
 
   const handleBackToDashboard = () => {
@@ -89,6 +157,7 @@ const Index = () => {
           document={currentDocument || undefined}
           onSave={handleSaveDocument}
           onBack={handleBackToDashboard}
+          currentUser={currentUsername}
         />
       </div>
     );
@@ -102,7 +171,7 @@ const Index = () => {
         onViewDocument={handleViewDocument}
         onEditDocument={handleEditDocument}
         onDownloadDocument={handleDownloadDocument}
-        currentUser={mockUser.name.toLowerCase().replace(' ', '_')}
+        currentUser={currentUsername}
       />
     </div>
   );

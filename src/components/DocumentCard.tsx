@@ -11,9 +11,13 @@ import {
   Calendar,
   User,
   Globe,
-  Lock
+  Lock,
+  Trash2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Document {
   id: string;
@@ -31,6 +35,7 @@ interface DocumentCardProps {
   onEdit: (id: string) => void;
   onDownload: (id: string) => void;
   currentUser?: string;
+  onRefresh?: () => void;
 }
 
 const DocumentCard: React.FC<DocumentCardProps> = ({
@@ -38,12 +43,54 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   onView,
   onEdit,
   onDownload,
-  currentUser
+  currentUser,
+  onRefresh
 }) => {
   const canEdit = document.createdBy === currentUser || document.isPublic;
+  const canDelete = document.createdBy === currentUser;
   const previewText = document.content.length > 100 
     ? `${document.content.substring(0, 100)}...`
     : document.content;
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', document.id);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar el documento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Documento eliminado",
+        description: "El documento se ha eliminado correctamente",
+      });
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="card-hover animate-fade-in group">
@@ -57,12 +104,12 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
             {document.isPublic ? (
               <>
                 <Globe className="w-3 h-3 mr-1" />
-                Public
+                Público
               </>
             ) : (
               <>
                 <Lock className="w-3 h-3 mr-1" />
-                Private
+                Privado
               </>
             )}
           </Badge>
@@ -71,7 +118,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       
       <CardContent className="pt-0 pb-4">
         <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-          {previewText || 'No content yet...'}
+          {previewText || 'Sin contenido aún...'}
         </p>
         
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -82,7 +129,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             <span>
-              Updated {formatDistanceToNow(document.updatedAt, { addSuffix: true })}
+              Actualizado {formatDistanceToNow(document.updatedAt, { addSuffix: true, locale: es })}
             </span>
           </div>
         </div>
@@ -97,7 +144,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
             className="flex-1"
           >
             <Eye className="w-4 h-4 mr-2" />
-            View
+            Ver
           </Button>
           
           {canEdit && (
@@ -108,7 +155,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
               className="flex-1"
             >
               <Edit className="w-4 h-4 mr-2" />
-              Edit
+              Editar
             </Button>
           )}
           
@@ -119,6 +166,17 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
           >
             <Download className="w-4 h-4" />
           </Button>
+
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>

@@ -1,19 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, FileText, Users, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import DocumentCard from './DocumentCard';
 
 interface Document {
   id: string;
   title: string;
   content: string;
-  isPublic: boolean;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
+  is_public: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface DashboardProps {
@@ -24,57 +26,53 @@ interface DashboardProps {
   currentUser?: string;
 }
 
-// Mock data
-const mockDocuments: Document[] = [
-  {
-    id: '1',
-    title: 'Welcome to Allnoting',
-    content: 'This is a public document that everyone can see and edit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    isPublic: true,
-    createdBy: 'admin',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '2',
-    title: 'Project Ideas',
-    content: 'My private notes about upcoming project ideas. This document is only visible to me.',
-    isPublic: false,
-    createdBy: 'john_doe',
-    createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-19'),
-  },
-  {
-    id: '3',
-    title: 'Team Meeting Notes',
-    content: 'Public meeting notes from our weekly team sync. Everyone can contribute and edit these notes.',
-    isPublic: true,
-    createdBy: 'jane_smith',
-    createdAt: new Date('2024-01-17'),
-    updatedAt: new Date('2024-01-18'),
-  },
-  {
-    id: '4',
-    title: 'Personal Journal',
-    content: 'My private thoughts and reflections. This is a personal document.',
-    isPublic: false,
-    createdBy: 'john_doe',
-    createdAt: new Date('2024-01-16'),
-    updatedAt: new Date('2024-01-17'),
-  },
-];
-
 const Dashboard: React.FC<DashboardProps> = ({
   onCreateDocument,
   onViewDocument,
   onEditDocument,
   onDownloadDocument,
-  currentUser = 'john_doe'
+  currentUser = 'usuario_anonimo'
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const publicDocuments = mockDocuments.filter(doc => doc.isPublic);
-  const myDocuments = mockDocuments.filter(doc => doc.createdBy === currentUser);
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching documents:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los documentos",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setDocuments(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const publicDocuments = documents.filter(doc => doc.is_public);
+  const myDocuments = documents.filter(doc => doc.created_by === currentUser);
 
   const filterDocuments = (documents: Document[]) => {
     if (!searchQuery) return documents;
@@ -90,34 +88,47 @@ const Dashboard: React.FC<DashboardProps> = ({
         <FileText className="w-8 h-8 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-medium mb-2">
-        No {type} documents yet
+        {type === 'public' ? 'No hay documentos públicos aún' : 'No tienes documentos aún'}
       </h3>
       <p className="text-muted-foreground mb-6 max-w-sm">
         {type === 'public' 
-          ? 'Be the first to create a public document for everyone to see.'
-          : 'Create your first document to get started with Allnoting.'
+          ? 'Sé el primero en crear un documento público para que todos lo vean.'
+          : 'Crea tu primer documento para empezar con Allnoting.'
         }
       </p>
       <Button onClick={onCreateDocument}>
         <Plus className="w-4 h-4 mr-2" />
-        Create Document
+        Crear Documento
       </Button>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="container py-8">
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Cargando documentos...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Your Documents</h1>
+          <h1 className="text-3xl font-bold mb-2">Tus Documentos</h1>
           <p className="text-muted-foreground">
-            Create, edit, and share documents with the community
+            Crea, edita y comparte documentos con la comunidad
           </p>
         </div>
         <Button onClick={onCreateDocument} className="shrink-0">
           <Plus className="w-4 h-4 mr-2" />
-          New Document
+          Nuevo Documento
         </Button>
       </div>
 
@@ -125,7 +136,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="relative mb-8">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search documents..."
+          placeholder="Buscar documentos..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -137,11 +148,11 @@ const Dashboard: React.FC<DashboardProps> = ({
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="public" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Public
+            Públicos
           </TabsTrigger>
           <TabsTrigger value="my-docs" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            My Documents
+            Mis Documentos
           </TabsTrigger>
         </TabsList>
 
@@ -153,11 +164,18 @@ const Dashboard: React.FC<DashboardProps> = ({
               {filterDocuments(publicDocuments).map((document) => (
                 <DocumentCard
                   key={document.id}
-                  document={document}
+                  document={{
+                    ...document,
+                    isPublic: document.is_public,
+                    createdBy: document.created_by,
+                    createdAt: new Date(document.created_at),
+                    updatedAt: new Date(document.updated_at)
+                  }}
                   onView={onViewDocument}
                   onEdit={onEditDocument}
                   onDownload={onDownloadDocument}
                   currentUser={currentUser}
+                  onRefresh={fetchDocuments}
                 />
               ))}
             </div>
@@ -172,11 +190,18 @@ const Dashboard: React.FC<DashboardProps> = ({
               {filterDocuments(myDocuments).map((document) => (
                 <DocumentCard
                   key={document.id}
-                  document={document}
+                  document={{
+                    ...document,
+                    isPublic: document.is_public,
+                    createdBy: document.created_by,
+                    createdAt: new Date(document.created_at),
+                    updatedAt: new Date(document.updated_at)
+                  }}
                   onView={onViewDocument}
                   onEdit={onEditDocument}
                   onDownload={onDownloadDocument}
                   currentUser={currentUser}
+                  onRefresh={fetchDocuments}
                 />
               ))}
             </div>

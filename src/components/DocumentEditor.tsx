@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,47 +15,114 @@ import {
   Code,
   Save,
   ArrowLeft,
-  Type,
   Heading1,
   Heading2,
   Heading3,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Document {
   id: string;
   title: string;
   content: string;
-  isPublic: boolean;
+  is_public: boolean;
+  created_by: string;
 }
 
 interface DocumentEditorProps {
   document?: Document;
   onSave: (doc: Partial<Document>) => void;
   onBack: () => void;
+  currentUser?: string;
 }
 
 const DocumentEditor: React.FC<DocumentEditorProps> = ({
   document,
   onSave,
-  onBack
+  onBack,
+  currentUser = 'usuario_anonimo'
 }) => {
-  const [title, setTitle] = useState(document?.title || 'Untitled Document');
+  const [title, setTitle] = useState(document?.title || 'Documento Sin Título');
   const [content, setContent] = useState(document?.content || '');
-  const [isPublic, setIsPublic] = useState(document?.isPublic || false);
+  const [isPublic, setIsPublic] = useState(document?.is_public || false);
   const [isSaving, setIsSaving] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    if (document) {
+      setTitle(document.title);
+      setContent(document.content);
+      setIsPublic(document.is_public);
+    }
+  }, [document]);
+
   const handleSave = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Error",
+        description: "El título no puede estar vacío",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
-    onSave({
-      id: document?.id,
-      title,
-      content,
-      isPublic
-    });
-    setIsSaving(false);
+    
+    try {
+      const documentData = {
+        title: title.trim(),
+        content: content,
+        is_public: isPublic,
+        created_by: currentUser,
+      };
+
+      let result;
+      
+      if (document?.id) {
+        // Actualizar documento existente
+        result = await supabase
+          .from('documents')
+          .update(documentData)
+          .eq('id', document.id)
+          .select()
+          .single();
+      } else {
+        // Crear nuevo documento
+        result = await supabase
+          .from('documents')
+          .insert([documentData])
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        console.error('Error saving document:', result.error);
+        toast({
+          title: "Error",
+          description: "No se pudo guardar el documento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Documento guardado",
+        description: document?.id ? "Los cambios se han guardado correctamente" : "El documento se ha creado correctamente",
+      });
+
+      onSave(result.data);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const insertText = (before: string, after: string = '') => {
@@ -84,16 +151,16 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   };
 
   const formatButtons = [
-    { icon: Bold, action: () => insertText('**', '**'), tooltip: 'Bold' },
-    { icon: Italic, action: () => insertText('_', '_'), tooltip: 'Italic' },
-    { icon: Underline, action: () => insertText('<u>', '</u>'), tooltip: 'Underline' },
-    { icon: Heading1, action: () => insertText('# '), tooltip: 'Heading 1' },
-    { icon: Heading2, action: () => insertText('## '), tooltip: 'Heading 2' },
-    { icon: Heading3, action: () => insertText('### '), tooltip: 'Heading 3' },
-    { icon: List, action: () => insertText('- '), tooltip: 'Bullet List' },
-    { icon: ListOrdered, action: () => insertText('1. '), tooltip: 'Numbered List' },
-    { icon: Quote, action: () => insertText('> '), tooltip: 'Quote' },
-    { icon: Code, action: () => insertText('`', '`'), tooltip: 'Code' },
+    { icon: Bold, action: () => insertText('**', '**'), tooltip: 'Negrita' },
+    { icon: Italic, action: () => insertText('_', '_'), tooltip: 'Cursiva' },
+    { icon: Underline, action: () => insertText('<u>', '</u>'), tooltip: 'Subrayado' },
+    { icon: Heading1, action: () => insertText('# '), tooltip: 'Título 1' },
+    { icon: Heading2, action: () => insertText('## '), tooltip: 'Título 2' },
+    { icon: Heading3, action: () => insertText('### '), tooltip: 'Título 3' },
+    { icon: List, action: () => insertText('- '), tooltip: 'Lista con viñetas' },
+    { icon: ListOrdered, action: () => insertText('1. '), tooltip: 'Lista numerada' },
+    { icon: Quote, action: () => insertText('> '), tooltip: 'Cita' },
+    { icon: Code, action: () => insertText('`', '`'), tooltip: 'Código' },
   ];
 
   return (
@@ -104,21 +171,21 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={onBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Volver
             </Button>
             <div className="h-6 w-px bg-border" />
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="text-lg font-medium border-0 bg-transparent p-0 focus-visible:ring-0"
-              placeholder="Document title..."
+              placeholder="Título del documento..."
             />
           </div>
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Label htmlFor="public-switch" className="text-sm">
-                Public
+                Público
               </Label>
               <Switch
                 id="public-switch"
@@ -128,7 +195,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? 'Guardando...' : 'Guardar'}
             </Button>
           </div>
         </div>
@@ -159,7 +226,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   ref={textareaRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start writing your document..."
+                  placeholder="Comienza a escribir tu documento..."
                   className="w-full min-h-[500px] resize-none border-0 bg-transparent text-base leading-relaxed focus:outline-none custom-scrollbar"
                 />
               </div>
@@ -169,7 +236,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           {/* Preview */}
           <Card className="mt-6">
             <CardHeader>
-              <h3 className="font-medium">Preview</h3>
+              <h3 className="font-medium">Vista Previa</h3>
             </CardHeader>
             <CardContent>
               <div 
@@ -178,12 +245,12 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   __html: content
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/_(.*?)_/g, '<em>$1</em>')
-                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                    .replace(/^- (.*$)/gm, '<li>$1</li>')
-                    .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-                    .replace(/`(.*?)`/g, '<code>$1</code>')
+                    .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+                    .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
+                    .replace(/^### (.*$)/gm, '<h3 class="text-lg font-medium mb-2">$1</h3>')
+                    .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+                    .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic">$1</blockquote>')
+                    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">$1</code>')
                     .replace(/\n/g, '<br>')
                 }}
               />
