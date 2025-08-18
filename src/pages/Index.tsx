@@ -5,6 +5,7 @@ import Dashboard from '@/components/Dashboard';
 import DocumentEditor from '@/components/DocumentEditor';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 interface Document {
   id: string;
@@ -17,17 +18,17 @@ interface Document {
 type ViewType = 'dashboard' | 'editor' | 'viewer';
 
 const Index = () => {
+  const { session, user } = useSupabaseAuth();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [refreshKey, setRefreshKey] = useState(0); // Forzar refresco del Dashboard
 
-  // Mock user for the app without login
-  const mockUser = {
-    name: 'Usuario Anónimo',
-    email: 'user@example.com'
-  };
+  const displayName =
+    (user?.user_metadata as any)?.name ||
+    user?.email?.split('@')[0] ||
+    'Usuario';
 
-  const currentUsername = mockUser.name.toLowerCase().replace(' ', '_');
+  const currentUserId = user?.id || 'usuario_anonimo';
 
   console.log('Index component mounted. Current view:', currentView);
 
@@ -164,12 +165,12 @@ const Index = () => {
   if (currentView === 'editor') {
     return (
       <div className="min-h-screen bg-background">
-        <Header user={mockUser} />
+        <Header user={{ name: displayName, email: user?.email || '' }} />
         <DocumentEditor
           document={currentDocument || undefined}
           onSave={handleSaveDocument}
           onBack={handleBackToDashboard}
-          currentUser={currentUsername}
+          currentUser={currentUserId}
         />
       </div>
     );
@@ -177,14 +178,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={mockUser} />
+      <Header user={{ name: displayName, email: user?.email || '' }} />
       <Dashboard
         key={refreshKey} // re-monta para refrescar lista y estado Público/Privado
         onCreateDocument={handleCreateDocument}
         onViewDocument={handleViewDocument}
         onEditDocument={handleEditDocument}
         onDownloadDocument={handleDownloadDocument}
-        currentUser={currentUsername}
+        currentUser={currentUserId}
       />
     </div>
   );

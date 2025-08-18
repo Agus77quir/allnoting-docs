@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { User, Settings } from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import Logo from './Logo';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderProps {
   user?: {
@@ -19,6 +20,11 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user }) => {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.assign('/auth');
+  };
+
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
@@ -45,12 +51,21 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost">Sign in</Button>
-              <Button>Sign up</Button>
+              <Button variant="ghost" onClick={() => window.location.assign('/auth')}>
+                Sign in
+              </Button>
+              <Button onClick={() => window.location.assign('/auth')}>
+                Sign up
+              </Button>
             </div>
           )}
         </div>

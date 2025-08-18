@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff } from 'lucide-react';
 import Logo from './Logo';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface LoginFormProps {
   onLogin: (user: { name: string; email: string }) => void;
@@ -25,17 +27,83 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const handleSubmit = async (e: React.FormEvent, type: 'login' | 'signup') => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock successful login/signup
-    onLogin({
-      name: formData.name || 'John Doe',
-      email: formData.email
-    });
-    
-    setIsLoading(false);
+
+    try {
+      if (type === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) {
+          console.error('[Auth] Login error:', error);
+          toast({
+            title: 'Error al iniciar sesión',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else {
+          const user = data.user;
+          toast({
+            title: 'Sesión iniciada',
+            description: `Bienvenido${user?.email ? `, ${user.email}` : ''}`,
+          });
+          onLogin({
+            name: (user?.user_metadata as any)?.name || user?.email || 'Usuario',
+            email: user?.email || '',
+          });
+        }
+      } else {
+        if (formData.password !== formData.confirmPassword) {
+          toast({
+            title: 'Las contraseñas no coinciden',
+            description: 'Asegúrate de que ambas contraseñas sean iguales.',
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        const redirectUrl = `${window.location.origin}/`;
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: { name: formData.name },
+            emailRedirectTo: redirectUrl,
+          },
+        });
+
+        if (error) {
+          console.error('[Auth] Sign up error:', error);
+          toast({
+            title: 'Error al registrarse',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else {
+          // Si la confirmación de email está habilitada, normalmente no hay sesión inmediata
+          if (!data.session) {
+            toast({
+              title: 'Registro exitoso',
+              description: 'Revisa tu correo para confirmar tu cuenta.',
+            });
+          } else {
+            const user = data.user;
+            toast({
+              title: 'Registro exitoso',
+              description: `Bienvenido${user?.email ? `, ${user.email}` : ''}`,
+            });
+            onLogin({
+              name: (user?.user_metadata as any)?.name || user?.email || 'Usuario',
+              email: user?.email || '',
+            });
+          }
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
