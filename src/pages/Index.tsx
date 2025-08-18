@@ -19,6 +19,7 @@ type ViewType = 'dashboard' | 'editor' | 'viewer';
 const Index = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Forzar refresco del Dashboard
 
   // Mock user for the app without login
   const mockUser = {
@@ -146,6 +147,8 @@ const Index = () => {
 
   const handleSaveDocument = (doc: Partial<Document>) => {
     console.log('Document saved:', doc);
+    // Forzar re-montaje del Dashboard para que recargue datos
+    setRefreshKey((k) => k + 1);
     setCurrentView('dashboard');
     // The DocumentEditor already shows the success toast
   };
@@ -176,6 +179,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header user={mockUser} />
       <Dashboard
+        key={refreshKey} // re-monta para refrescar lista y estado Público/Privado
         onCreateDocument={handleCreateDocument}
         onViewDocument={handleViewDocument}
         onEditDocument={handleEditDocument}

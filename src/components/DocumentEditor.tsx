@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,20 +58,27 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   }, [document]);
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "El título no puede estar vacío",
-        variant: "destructive",
-      });
-      return;
+    // Pedir nombre si el título está vacío o es el genérico
+    let finalTitle = (title || '').trim();
+    if (!finalTitle || finalTitle === 'Documento Sin Título') {
+      const inputTitle = window.prompt('Escribe el nombre del documento:', finalTitle || '');
+      if (!inputTitle || !inputTitle.trim()) {
+        toast({
+          title: "Título requerido",
+          description: "El documento debe tener un nombre antes de guardarse.",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalTitle = inputTitle.trim();
+      setTitle(finalTitle);
     }
 
     setIsSaving(true);
     
     try {
       const documentData = {
-        title: title.trim(),
+        title: finalTitle,
         content: content,
         is_public: isPublic,
         created_by: currentUser,
@@ -109,7 +115,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
 
       toast({
         title: "Documento guardado",
-        description: document?.id ? "Los cambios se han guardado correctamente" : "El documento se ha creado correctamente",
+        description: isPublic ? "Guardado como Público" : "Guardado como Privado",
       });
 
       onSave(result.data);
