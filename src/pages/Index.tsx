@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import DocumentEditor from '@/components/DocumentEditor';
+import Footer from '@/components/Footer';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -164,7 +165,7 @@ const Index = () => {
 
   if (currentView === 'editor') {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Header user={{ name: displayName, email: user?.email || '' }} />
         <DocumentEditor
           document={currentDocument || undefined}
@@ -172,12 +173,13 @@ const Index = () => {
           onBack={handleBackToDashboard}
           currentUser={currentUserId}
         />
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header user={{ name: displayName, email: user?.email || '' }} />
       <Dashboard
         key={refreshKey} // re-monta para refrescar lista y estado Público/Privado
@@ -187,6 +189,7 @@ const Index = () => {
         onDownloadDocument={handleDownloadDocument}
         currentUser={currentUserId}
       />
+      <Footer />
     </div>
   );
 };
