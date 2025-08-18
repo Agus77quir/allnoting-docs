@@ -32,39 +32,46 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
         
         <div className="flex items-center gap-4">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <span className="hidden sm:inline">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-muted-foreground text-xs">{user.email}</div>
                   </div>
-                  <span className="hidden sm:inline">{user.name}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm">
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-muted-foreground text-xs">{user.email}</div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configuración
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button onClick={handleSignOut} variant="outline" size="sm">
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar sesión
+              </Button>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" onClick={() => window.location.assign('/auth')}>
-                Sign in
+                Iniciar sesión
               </Button>
               <Button onClick={() => window.location.assign('/auth')}>
-                Sign up
+                Registrarse
               </Button>
             </div>
           )}
