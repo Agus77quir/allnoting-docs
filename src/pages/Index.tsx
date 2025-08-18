@@ -28,12 +28,16 @@ const Index = () => {
 
   const currentUsername = mockUser.name.toLowerCase().replace(' ', '_');
 
+  console.log('Index component mounted. Current view:', currentView);
+
   const handleCreateDocument = () => {
+    console.log('Creating new document...');
     setCurrentDocument(null);
     setCurrentView('editor');
   };
 
   const handleViewDocument = async (id: string) => {
+    console.log('Viewing document with id:', id);
     try {
       const { data, error } = await supabase
         .from('documents')
@@ -67,6 +71,7 @@ const Index = () => {
   };
 
   const handleEditDocument = async (id: string) => {
+    console.log('Editing document with id:', id);
     try {
       const { data, error } = await supabase
         .from('documents')
@@ -97,6 +102,7 @@ const Index = () => {
   };
 
   const handleDownloadDocument = async (id: string) => {
+    console.log('Downloading document with id:', id);
     try {
       const { data, error } = await supabase
         .from('documents')
@@ -145,13 +151,16 @@ const Index = () => {
   };
 
   const handleBackToDashboard = () => {
+    console.log('Going back to dashboard...');
     setCurrentView('dashboard');
     setCurrentDocument(null);
   };
 
+  console.log('Rendering Index component with view:', currentView);
+
   if (currentView === 'editor') {
     return (
-      <div>
+      <div className="min-h-screen bg-background">
         <Header user={mockUser} />
         <DocumentEditor
           document={currentDocument || undefined}
