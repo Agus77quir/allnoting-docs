@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +16,9 @@ interface HeaderProps {
     name: string;
     email: string;
   };
-  onLogout?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ user }) => {
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
@@ -45,11 +44,6 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 <DropdownMenuItem>
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

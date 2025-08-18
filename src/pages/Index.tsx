@@ -3,13 +3,7 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import DocumentEditor from '@/components/DocumentEditor';
-import LoginForm from '@/components/LoginForm';
 import { toast } from '@/hooks/use-toast';
-
-interface User {
-  name: string;
-  email: string;
-}
 
 interface Document {
   id: string;
@@ -18,30 +12,16 @@ interface Document {
   isPublic: boolean;
 }
 
-type ViewType = 'login' | 'dashboard' | 'editor' | 'viewer';
+type ViewType = 'dashboard' | 'editor' | 'viewer';
 
 const Index = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<ViewType>('login');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-    setCurrentView('dashboard');
-    toast({
-      title: "Welcome!",
-      description: `Signed in as ${userData.name}`,
-    });
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentView('login');
-    setCurrentDocument(null);
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out",
-    });
+  // Mock user for the app without login
+  const mockUser = {
+    name: 'Usuario Anónimo',
+    email: 'user@example.com'
   };
 
   const handleCreateDocument = () => {
@@ -101,15 +81,10 @@ const Index = () => {
     setCurrentDocument(null);
   };
 
-  // Render based on current view
-  if (currentView === 'login') {
-    return <LoginForm onLogin={handleLogin} />;
-  }
-
   if (currentView === 'editor') {
     return (
       <div>
-        <Header user={user || undefined} onLogout={handleLogout} />
+        <Header user={mockUser} />
         <DocumentEditor
           document={currentDocument || undefined}
           onSave={handleSaveDocument}
@@ -121,13 +96,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={user || undefined} onLogout={handleLogout} />
+      <Header user={mockUser} />
       <Dashboard
         onCreateDocument={handleCreateDocument}
         onViewDocument={handleViewDocument}
         onEditDocument={handleEditDocument}
         onDownloadDocument={handleDownloadDocument}
-        currentUser={user?.name.toLowerCase().replace(' ', '_')}
+        currentUser={mockUser.name.toLowerCase().replace(' ', '_')}
       />
     </div>
   );
