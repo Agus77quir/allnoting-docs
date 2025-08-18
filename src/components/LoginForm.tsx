@@ -20,8 +20,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
-    confirmPassword: ''
+    name: ''
   });
 
   const handleSubmit = async (e: React.FormEvent, type: 'login' | 'signup') => {
@@ -54,16 +53,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
           });
         }
       } else {
-        if (formData.password !== formData.confirmPassword) {
-          toast({
-            title: 'Las contraseñas no coinciden',
-            description: 'Asegúrate de que ambas contraseñas sean iguales.',
-            variant: 'destructive',
-          });
-          setIsLoading(false);
-          return;
-        }
-
         const redirectUrl = `${window.location.origin}/`;
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
@@ -82,7 +71,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
             variant: 'destructive',
           });
         } else {
-          // Si la confirmación de email está habilitada, normalmente no hay sesión inmediata
           if (!data.session) {
             toast({
               title: 'Registro exitoso',
@@ -116,23 +104,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         <div className="text-center mb-8">
           <Logo className="justify-center mb-4" />
           <p className="text-muted-foreground">
-            Welcome to the collaborative documentation platform
+            Plataforma colaborativa de documentación
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Get Started</CardTitle>
+            <CardTitle>Comenzar</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              Inicia sesión en tu cuenta o crea una nueva
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="signup">Registrarse</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="space-y-4 mt-6">
@@ -142,7 +130,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder="tu@email.com"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       required
@@ -150,7 +138,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">Contraseña</Label>
                     <div className="relative">
                       <Input
                         id="login-password"
@@ -177,7 +165,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   </div>
                   
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                   </Button>
                 </form>
               </TabsContent>
@@ -185,11 +173,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
               <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={(e) => handleSubmit(e, 'signup')} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label htmlFor="signup-name">Nombre</Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="Tu nombre"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       required
@@ -201,7 +189,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder="tu@email.com"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       required
@@ -209,7 +197,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">Contraseña</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -235,20 +223,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      required
-                    />
-                  </div>
-                  
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Creating account...' : 'Create Account'}
+                    {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
                   </Button>
                 </form>
               </TabsContent>
@@ -257,7 +233,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         </Card>
         
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad
         </div>
       </div>
     </div>

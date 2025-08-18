@@ -22,7 +22,6 @@ const Auth: React.FC = () => {
   return (
     <LoginForm
       onLogin={() => {
-        // El listener de auth redirigirá automáticamente; este callback es por compatibilidad
         window.location.assign('/');
       }}
     />
