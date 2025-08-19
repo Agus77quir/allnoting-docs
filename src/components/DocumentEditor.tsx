@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -203,12 +204,12 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/_(.*?)_/g, '<em>$1</em>')
-      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
-      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-medium mb-2">$1</h3>')
-      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
-      .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic">$1</blockquote>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">$1</code>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-xl sm:text-2xl font-bold mb-4 break-words">$1</h1>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-lg sm:text-xl font-semibold mb-3 break-words">$1</h2>')
+      .replace(/^### (.*$)/gm, '<h3 class="text-base sm:text-lg font-medium mb-2 break-words">$1</h3>')
+      .replace(/^- (.*$)/gm, '<li class="ml-4 break-words">• $1</li>')
+      .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-border pl-4 italic break-words">$1</blockquote>')
+      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm break-all">$1</code>')
       .replace(/^\|(.+)\|$/gm, (match, content) => {
         const cells = content.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell);
         const isHeaderSeparator = cells.every((cell: string) => cell.match(/^-+$/));
@@ -217,10 +218,10 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           return '';
         }
         
-        const cellsHtml = cells.map((cell: string) => `<td class="border border-gray-300 px-2 py-1">${cell}</td>`).join('');
+        const cellsHtml = cells.map((cell: string) => `<td class="border border-border px-2 py-1 break-words text-xs sm:text-sm">${cell}</td>`).join('');
         return `<tr>${cellsHtml}</tr>`;
       })
-      .replace(/(<tr>.*<\/tr>)/gm, '<table class="border-collapse border border-gray-300 mb-4">$1</table>')
+      .replace(/(<tr>.*<\/tr>)/gm, '<table class="w-full border-collapse border border-border mb-4 overflow-x-auto">$1</table>')
       .replace(/\n/g, '<br>');
   };
 
@@ -228,24 +229,24 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={onBack}>
+        <div className="container flex h-auto sm:h-16 items-center justify-between p-4 sm:p-6 flex-col sm:flex-row gap-4 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button variant="ghost" onClick={onBack} className="shrink-0">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver
+              <span className="hidden sm:inline">Volver</span>
             </Button>
-            <div className="h-6 w-px bg-border" />
+            <div className="hidden sm:block h-6 w-px bg-border" />
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-lg font-medium border-0 bg-transparent p-0 focus-visible:ring-0"
+              className="text-sm sm:text-lg font-medium border-0 bg-transparent p-0 focus-visible:ring-0 min-w-0 flex-1"
               placeholder="Título del documento..."
             />
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
             <div className="flex items-center gap-2">
-              <Label htmlFor="public-switch" className="text-sm">
+              <Label htmlFor="public-switch" className="text-xs sm:text-sm whitespace-nowrap">
                 Público
               </Label>
               <Switch
@@ -254,19 +255,19 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 onCheckedChange={setIsPublic}
               />
             </div>
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="w-4 h-4 mr-2" />
+            <Button onClick={handleSave} disabled={isSaving} className="text-xs sm:text-sm">
+              <Save className="w-4 h-4 mr-1 sm:mr-2" />
               {isSaving ? 'Guardando...' : 'Guardar'}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="container py-8">
+      <div className="container py-4 sm:py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <Card>
-            <CardHeader>
-              <div className="flex flex-wrap items-center gap-1">
+            <CardHeader className="pb-4">
+              <div className="flex flex-wrap items-center gap-1 overflow-x-auto">
                 {formatButtons.map((btn, index) => (
                   <Button
                     key={index}
@@ -274,34 +275,35 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
                     size="sm"
                     onClick={btn.action}
                     title={btn.tooltip}
+                    className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 p-1 sm:p-2"
                   >
-                    <btn.icon className="w-4 h-4" />
+                    <btn.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 ))}
               </div>
             </CardHeader>
             
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 <textarea
                   ref={textareaRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Comienza a escribir tu documento..."
-                  className="w-full min-h-[500px] resize-none border-0 bg-transparent text-base leading-relaxed focus:outline-none custom-scrollbar"
+                  className="w-full min-h-[300px] sm:min-h-[500px] resize-none border-0 bg-transparent text-sm sm:text-base leading-relaxed focus:outline-none custom-scrollbar break-words"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* Preview */}
-          <Card className="mt-6">
-            <CardHeader>
-              <h3 className="font-medium">Vista Previa</h3>
+          <Card className="mt-4 sm:mt-6">
+            <CardHeader className="pb-4">
+              <h3 className="font-medium text-sm sm:text-base">Vista Previa</h3>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div 
-                className="editor-content"
+                className="editor-content overflow-hidden break-words"
                 dangerouslySetInnerHTML={{
                   __html: renderPreviewContent(content)
                 }}

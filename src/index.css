@@ -121,6 +121,7 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden; /* Prevent horizontal scroll */
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -182,35 +183,38 @@
 
   /* Editor styles */
   .editor-content {
-    @apply prose prose-gray max-w-none;
+    @apply prose prose-gray max-w-none break-words;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   .editor-content h1 {
-    @apply text-2xl font-semibold mb-4 mt-6 first:mt-0;
+    @apply text-xl sm:text-2xl font-semibold mb-4 mt-6 first:mt-0 break-words;
   }
 
   .editor-content h2 {
-    @apply text-xl font-semibold mb-3 mt-5;
+    @apply text-lg sm:text-xl font-semibold mb-3 mt-5 break-words;
   }
 
   .editor-content h3 {
-    @apply text-lg font-semibold mb-2 mt-4;
+    @apply text-base sm:text-lg font-semibold mb-2 mt-4 break-words;
   }
 
   .editor-content p {
-    @apply mb-3 leading-relaxed;
+    @apply mb-3 leading-relaxed break-words;
   }
 
   .editor-content ul {
-    @apply mb-4 ml-6 list-disc;
+    @apply mb-4 ml-4 sm:ml-6 list-disc;
   }
 
   .editor-content ol {
-    @apply mb-4 ml-6 list-decimal;
+    @apply mb-4 ml-4 sm:ml-6 list-decimal;
   }
 
   .editor-content li {
-    @apply mb-1;
+    @apply mb-1 break-words;
   }
 
   .editor-content strong {
@@ -222,19 +226,47 @@
   }
 
   .editor-content blockquote {
-    @apply border-l-4 border-border pl-4 my-4 italic text-muted-foreground;
+    @apply border-l-4 border-border pl-4 my-4 italic text-muted-foreground break-words;
   }
 
   .editor-content code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+    @apply bg-muted px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono break-all;
   }
 
   .editor-content pre {
-    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
+    @apply bg-muted p-2 sm:p-4 rounded-lg overflow-x-auto my-4;
   }
 
   .editor-content pre code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent p-0 break-all;
+  }
+
+  .editor-content table {
+    @apply w-full border-collapse border border-border mb-4 text-xs sm:text-sm;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+  }
+
+  .editor-content table tbody {
+    @apply block;
+  }
+
+  .editor-content table tr {
+    @apply block;
+  }
+
+  .editor-content table td {
+    @apply border border-border px-1 sm:px-2 py-1 break-words inline-block;
+    min-width: 80px;
+    max-width: 200px;
+    white-space: normal;
+  }
+
+  /* Responsive utilities */
+  .break-anywhere {
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Custom scrollbars */
@@ -255,6 +287,13 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--foreground));
+  }
+
+  /* Responsive container */
+  @media (max-width: 640px) {
+    .container {
+      @apply px-4;
+    }
   }
 }
 
@@ -281,5 +320,39 @@
 
   .input-focus {
     @apply transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl;
+  }
+
+  /* Responsive spacing utilities */
+  .space-responsive {
+    @apply space-y-2 sm:space-y-4;
+  }
+
+  .gap-responsive {
+    @apply gap-2 sm:gap-4;
+  }
+
+  .p-responsive {
+    @apply p-2 sm:p-4;
+  }
+
+  .px-responsive {
+    @apply px-2 sm:px-4;
+  }
+
+  .py-responsive {
+    @apply py-2 sm:py-4;
   }
 }
