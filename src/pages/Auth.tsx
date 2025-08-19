@@ -29,7 +29,7 @@ const Auth = () => {
               <Logo />
             </div>
             <p className="text-muted-foreground mt-2">
-              Inicia sesión para acceder a tus documentos
+              Plataforma colaborativa de documentos
             </p>
           </div>
           <LoginForm onLogin={() => window.location.assign('/')} />
