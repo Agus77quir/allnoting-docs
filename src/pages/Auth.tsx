@@ -24,7 +24,7 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Bienvenido a WebHaus</h1>
+            <h1 className="text-2xl font-bold">Allnoting</h1>
             <p className="text-muted-foreground mt-2">
               Inicia sesión para acceder a tus documentos
             </p>
