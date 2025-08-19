@@ -17,9 +17,11 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Table,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import TableInsertDialog from './TableInsertDialog';
 
 interface Document {
   id: string;
@@ -46,6 +48,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const [content, setContent] = useState(document?.content || '');
   const [isPublic, setIsPublic] = useState(document?.is_public || false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showTableDialog, setShowTableDialog] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -58,7 +61,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   }, [document]);
 
   const handleSave = async () => {
-    // Pedir nombre si el título está vacío o es el genérico
     let finalTitle = (title || '').trim();
     if (!finalTitle || finalTitle === 'Documento Sin Título') {
       const inputTitle = window.prompt('Escribe el nombre del documento:', finalTitle || '');
@@ -87,7 +89,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
       let result;
       
       if (document?.id) {
-        // Actualizar documento existente
         result = await supabase
           .from('documents')
           .update(documentData)
@@ -95,7 +96,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           .select()
           .single();
       } else {
-        // Crear nuevo documento
         result = await supabase
           .from('documents')
           .insert([documentData])
@@ -146,7 +146,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     
     setContent(newContent);
     
-    // Restore cursor position
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(
@@ -154,6 +153,36 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
         end + before.length
       );
     }, 0);
+  };
+
+  const handleTableInsert = (rows: number, cols: number) => {
+    let tableMarkdown = '\n';
+    
+    // Header row
+    tableMarkdown += '|';
+    for (let i = 0; i < cols; i++) {
+      tableMarkdown += ` Columna ${i + 1} |`;
+    }
+    tableMarkdown += '\n';
+    
+    // Separator row
+    tableMarkdown += '|';
+    for (let i = 0; i < cols; i++) {
+      tableMarkdown += ' --- |';
+    }
+    tableMarkdown += '\n';
+    
+    // Data rows
+    for (let i = 0; i < rows - 1; i++) {
+      tableMarkdown += '|';
+      for (let j = 0; j < cols; j++) {
+        tableMarkdown += ' Celda |';
+      }
+      tableMarkdown += '\n';
+    }
+    
+    insertText(tableMarkdown);
+    setShowTableDialog(false);
   };
 
   const formatButtons = [
@@ -167,7 +196,33 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     { icon: ListOrdered, action: () => insertText('1. '), tooltip: 'Lista numerada' },
     { icon: Quote, action: () => insertText('> '), tooltip: 'Cita' },
     { icon: Code, action: () => insertText('`', '`'), tooltip: 'Código' },
+    { icon: Table, action: () => setShowTableDialog(true), tooltip: 'Insertar tabla' },
   ];
+
+  const renderPreviewContent = (text: string) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/_(.*?)_/g, '<em>$1</em>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
+      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-medium mb-2">$1</h3>')
+      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+      .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic">$1</blockquote>')
+      .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">$1</code>')
+      .replace(/^\|(.+)\|$/gm, (match, content) => {
+        const cells = content.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell);
+        const isHeaderSeparator = cells.every((cell: string) => cell.match(/^-+$/));
+        
+        if (isHeaderSeparator) {
+          return '';
+        }
+        
+        const cellsHtml = cells.map((cell: string) => `<td class="border border-gray-300 px-2 py-1">${cell}</td>`).join('');
+        return `<tr>${cellsHtml}</tr>`;
+      })
+      .replace(/(<tr>.*<\/tr>)/gm, '<table class="border-collapse border border-gray-300 mb-4">$1</table>')
+      .replace(/\n/g, '<br>');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -248,22 +303,19 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
               <div 
                 className="editor-content"
                 dangerouslySetInnerHTML={{
-                  __html: content
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/_(.*?)_/g, '<em>$1</em>')
-                    .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-                    .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
-                    .replace(/^### (.*$)/gm, '<h3 class="text-lg font-medium mb-2">$1</h3>')
-                    .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
-                    .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic">$1</blockquote>')
-                    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">$1</code>')
-                    .replace(/\n/g, '<br>')
+                  __html: renderPreviewContent(content)
                 }}
               />
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <TableInsertDialog
+        open={showTableDialog}
+        onOpenChange={setShowTableDialog}
+        onInsert={handleTableInsert}
+      />
     </div>
   );
 };
