@@ -7,6 +7,7 @@ import { Plus, Search, FileText, Users, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import DocumentCard from './DocumentCard';
+import UserProfileCard from './UserProfileCard';
 
 interface Document {
   id: string;
@@ -24,6 +25,8 @@ interface DashboardProps {
   onEditDocument: (id: string) => void;
   onDownloadDocument: (id: string) => void;
   currentUser?: string;
+  userEmail?: string;
+  displayName?: string;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -31,7 +34,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   onViewDocument,
   onEditDocument,
   onDownloadDocument,
-  currentUser = 'usuario_anonimo'
+  currentUser = 'usuario_anonimo',
+  userEmail = '',
+  displayName = 'Usuario'
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -118,6 +123,12 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="container py-8">
+      {/* User Profile Card */}
+      <UserProfileCard 
+        displayName={displayName}
+        email={userEmail}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>

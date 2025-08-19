@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
@@ -22,7 +21,7 @@ const Index = () => {
   const { session, user } = useSupabaseAuth();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // Forzar refresco del Dashboard
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const displayName =
     (user?.user_metadata as any)?.name ||
@@ -58,7 +57,6 @@ const Index = () => {
         return;
       }
 
-      // Create a simple viewer (for now just show a toast)
       toast({
         title: "Documento abierto",
         description: `Visualizando: ${data.title}`,
@@ -123,7 +121,6 @@ const Index = () => {
         return;
       }
 
-      // Create and download the file
       const content = `# ${data.title}\n\n${data.content}`;
       const element = document.createElement('a');
       const file = new Blob([content], { type: 'text/markdown' });
@@ -149,10 +146,8 @@ const Index = () => {
 
   const handleSaveDocument = (doc: Partial<Document>) => {
     console.log('Document saved:', doc);
-    // Forzar re-montaje del Dashboard para que recargue datos
     setRefreshKey((k) => k + 1);
     setCurrentView('dashboard');
-    // The DocumentEditor already shows the success toast
   };
 
   const handleBackToDashboard = () => {
@@ -182,12 +177,14 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header user={{ name: displayName, email: user?.email || '' }} />
       <Dashboard
-        key={refreshKey} // re-monta para refrescar lista y estado Público/Privado
+        key={refreshKey}
         onCreateDocument={handleCreateDocument}
         onViewDocument={handleViewDocument}
         onEditDocument={handleEditDocument}
         onDownloadDocument={handleDownloadDocument}
         currentUser={currentUserId}
+        userEmail={user?.email || ''}
+        displayName={displayName}
       />
       <Footer />
     </div>
