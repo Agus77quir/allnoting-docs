@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Plus, Trash2, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AvatarUpload from '@/components/AvatarUpload';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ICON_OPTIONS = [
   { value: 'folder', label: '📁 Carpeta' },
@@ -44,7 +44,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
     bio: '',
     avatar_url: ''
   });
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     if (profile) {
