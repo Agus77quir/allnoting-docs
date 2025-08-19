@@ -85,7 +85,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
   return (
     <Card className="mb-6">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-4">
             <Avatar className="w-16 h-16">
               <AvatarImage src={profile?.avatar_url || ''} />
@@ -93,14 +93,14 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
                 <User className="w-8 h-8" />
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex-1">
               <CardTitle className="text-xl">
                 {profile?.display_name || displayName}
               </CardTitle>
               {profile?.username && (
                 <p className="text-sm text-muted-foreground">@{profile.username}</p>
               )}
-              <CardDescription>{email}</CardDescription>
+              <CardDescription className="text-sm">{email}</CardDescription>
               {profile?.bio && (
                 <p className="text-sm mt-1">{profile.bio}</p>
               )}
@@ -108,7 +108,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
           </div>
           <Dialog open={editingProfile} onOpenChange={setEditingProfile}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 <Edit className="w-4 h-4 mr-2" />
                 Editar Perfil
               </Button>
