@@ -5,10 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Plus, Trash2, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import AvatarUpload from '@/components/AvatarUpload';
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 const ICON_OPTIONS = [
   { value: 'folder', label: '📁 Carpeta' },
@@ -42,6 +44,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
     bio: '',
     avatar_url: ''
   });
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   React.useEffect(() => {
     if (profile) {
@@ -69,6 +72,58 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
       setNewCategory({ name: '', icon: 'folder', color: '#3b82f6' });
     }
   };
+
+  // Profile edit form content component
+  const ProfileEditForm = () => (
+    <div className="space-y-6 p-4 sm:p-0">
+      <div className="flex justify-center">
+        <AvatarUpload
+          currentAvatarUrl={profileData.avatar_url}
+          onAvatarChange={handleAvatarChange}
+          size="lg"
+        />
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="display_name">Nombre para mostrar</Label>
+          <Input
+            id="display_name"
+            value={profileData.display_name}
+            onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
+            placeholder="Tu nombre completo"
+          />
+        </div>
+        <div>
+          <Label htmlFor="username">Nombre de usuario</Label>
+          <Input
+            id="username"
+            value={profileData.username}
+            onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+            placeholder="tunombredeusuario"
+          />
+        </div>
+        <div>
+          <Label htmlFor="bio">Biografía</Label>
+          <Input
+            id="bio"
+            value={profileData.bio}
+            onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+            placeholder="Cuéntanos algo sobre ti..."
+          />
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button variant="outline" onClick={() => setEditingProfile(false)}>
+          Cancelar
+        </Button>
+        <Button onClick={handleSaveProfile}>
+          Guardar Cambios
+        </Button>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -110,70 +165,46 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
               )}
             </div>
           </div>
-          <Dialog open={editingProfile} onOpenChange={setEditingProfile}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                <Edit className="w-4 h-4 mr-2" />
-                Editar Perfil
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Editar Perfil</DialogTitle>
-                <DialogDescription>
-                  Personaliza tu información de perfil
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <AvatarUpload
-                    currentAvatarUrl={profileData.avatar_url}
-                    onAvatarChange={handleAvatarChange}
-                    size="lg"
-                  />
+          
+          {isMobile ? (
+            <Drawer open={editingProfile} onOpenChange={setEditingProfile}>
+              <DrawerTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Perfil
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[90vh]">
+                <DrawerHeader className="text-center">
+                  <DrawerTitle>Editar Perfil</DrawerTitle>
+                  <DrawerDescription>
+                    Personaliza tu información de perfil
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="overflow-y-auto">
+                  <ProfileEditForm />
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="display_name">Nombre para mostrar</Label>
-                    <Input
-                      id="display_name"
-                      value={profileData.display_name}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
-                      placeholder="Tu nombre completo"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="username">Nombre de usuario</Label>
-                    <Input
-                      id="username"
-                      value={profileData.username}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-                      placeholder="tunombredeusuario"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="bio">Biografía</Label>
-                    <Input
-                      id="bio"
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                      placeholder="Cuéntanos algo sobre ti..."
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setEditingProfile(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleSaveProfile}>
-                    Guardar Cambios
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DrawerContent>
+            </Drawer>
+          ) : (
+            <Dialog open={editingProfile} onOpenChange={setEditingProfile}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Perfil
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Editar Perfil</DialogTitle>
+                  <DialogDescription>
+                    Personaliza tu información de perfil
+                  </DialogDescription>
+                </DialogHeader>
+                <ProfileEditForm />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </CardHeader>
       
