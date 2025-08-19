@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Edit, Plus, Trash2, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import AvatarUpload from '@/components/AvatarUpload';
 
 const ICON_OPTIONS = [
   { value: 'folder', label: '📁 Carpeta' },
@@ -57,6 +57,10 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
   const handleSaveProfile = async () => {
     await updateProfile(profileData);
     setEditingProfile(false);
+  };
+
+  const handleAvatarChange = (url: string) => {
+    setProfileData(prev => ({ ...prev, avatar_url: url }));
   };
 
   const handleAddCategory = async () => {
@@ -113,50 +117,52 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ displayName, email })
                 Editar Perfil
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Editar Perfil</DialogTitle>
                 <DialogDescription>
                   Personaliza tu información de perfil
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="display_name">Nombre para mostrar</Label>
-                  <Input
-                    id="display_name"
-                    value={profileData.display_name}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
-                    placeholder="Tu nombre completo"
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <AvatarUpload
+                    currentAvatarUrl={profileData.avatar_url}
+                    onAvatarChange={handleAvatarChange}
+                    size="lg"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="username">Nombre de usuario</Label>
-                  <Input
-                    id="username"
-                    value={profileData.username}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-                    placeholder="tunombredeusuario"
-                  />
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="display_name">Nombre para mostrar</Label>
+                    <Input
+                      id="display_name"
+                      value={profileData.display_name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="username">Nombre de usuario</Label>
+                    <Input
+                      id="username"
+                      value={profileData.username}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                      placeholder="tunombredeusuario"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="bio">Biografía</Label>
+                    <Input
+                      id="bio"
+                      value={profileData.bio}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Cuéntanos algo sobre ti..."
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="bio">Biografía</Label>
-                  <Input
-                    id="bio"
-                    value={profileData.bio}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                    placeholder="Cuéntanos algo sobre ti..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="avatar_url">URL del avatar</Label>
-                  <Input
-                    id="avatar_url"
-                    value={profileData.avatar_url}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, avatar_url: e.target.value }))}
-                    placeholder="https://ejemplo.com/tu-imagen.jpg"
-                  />
-                </div>
+                
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setEditingProfile(false)}>
                     Cancelar
